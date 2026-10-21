@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "sa.arbiter/ahkam",
+  "title": "Ahkam — Saudi court rulings",
+  "description": "Search published Saudi court rulings and get analysis grounded only in the retrieved rulings.",
+  "version": "1.1.0",
+  "websiteUrl": "https://ahkam.arbiter.sa/developers",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.ahkam.arbiter.sa/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer <consumer>.<k1|k2>.<secret> — key issued by Ahkam (request one at https://ahkam.arbiter.sa/developers)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

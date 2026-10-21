@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "ahkam": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://mcp.ahkam.arbiter.sa/mcp",
+        "--header",
+        "Authorization:${AHKAM_AUTH}"
+      ],
+      "env": {
+        "AHKAM_AUTH": "Bearer KEY"
+      }
+    }
+  }
+}

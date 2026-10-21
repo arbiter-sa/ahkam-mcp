@@ -1,0 +1,72 @@
+# Publishes server.json to the official MCP Registry (registry.modelcontextprotocol.io)
+# when a tag v* is pushed. Authentication: DNS for arbiter.sa (TXT record v=MCPv1; k=ed25519).
+#
+# Requires the repository secret MCP_PRIVATE_KEY (Ed25519 private key seed, 64 hex characters),
+# set by the owner. Without it, publishing is skipped with a notice; the job does not fail.
+name: Publish to MCP Registry
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-registry
+  cancel-in-progress: false
+
+env:
+  MCP_PUBLISHER_VERSION: "1.8.1"
+  # sha256 of mcp-publisher_linux_amd64.tar.gz in the v1.8.1 release of modelcontextprotocol/registry
+  MCP_PUBLISHER_SHA256: "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check for MCP_PRIVATE_KEY
+        id: secret
+        env:
+          MCP_PRIVATE_KEY: ${{ secrets.MCP_PRIVATE_KEY }}
+        run: |
+          if [ -z "$MCP_PRIVATE_KEY" ]; then
+            echo "::notice title=Registry publish skipped::The MCP_PRIVATE_KEY secret is not set. The owner sets it in Settings > Secrets and variables > Actions to enable publishing."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.secret.outputs.present == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check tag matches server.json version
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          version="$(jq -r .version server.json)"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match server.json version ${version} (expected v${version})."
+            exit 1
+          fi
+
+      - name: Install mcp-publisher
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+          rm mcp-publisher.tar.gz
+          ./mcp-publisher --version || true
+
+      - name: Log in (DNS, arbiter.sa)
+        if: steps.secret.outputs.present == 'true'
+        env:
+          MCP_PRIVATE_KEY: ${{ secrets.MCP_PRIVATE_KEY }}
+        run: ./mcp-publisher login dns --domain arbiter.sa --private-key "$MCP_PRIVATE_KEY"
+
+      - name: Publish server.json
+        if: steps.secret.outputs.present == 'true'
+        run: ./mcp-publisher publish

@@ -1,0 +1,17 @@
+{
+  "name": "ahkam-mcp-client-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal MCP client for the Ahkam server (Streamable HTTP, API key from AHKAM_MCP_KEY).",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1"
+  }
+}

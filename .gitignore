@@ -1,0 +1,8 @@
+node_modules/
+package-lock.json
+.env
+.env.*
+*.pem
+*.key
+.mcpregistry_*
+mcp-publisher

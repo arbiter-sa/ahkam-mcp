@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "ahkam": {
+      "url": "https://mcp.ahkam.arbiter.sa/mcp",
+      "headers": {
+        "Authorization": "Bearer KEY"
+      }
+    }
+  }
+}
